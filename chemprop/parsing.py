@@ -82,6 +82,8 @@ def add_train_args(parser: ArgumentParser):
                         choices=['classification', 'regression'],
                         help='Type of dataset, e.g. classification or regression.'
                              'This determines the loss function used during training.')
+    parser.add_argument('--class_weights', type=float, nargs='*',
+                        help='List of weights for labels, optional')
     parser.add_argument('--separate_val_path', type=str,
                         help='Path to separate val set, optional')
     parser.add_argument('--separate_val_features_path', type=str, nargs='*',
