@@ -18,9 +18,9 @@ THREE_D_DISTANCE_MAX = 20
 THREE_D_DISTANCE_STEP = 1
 THREE_D_DISTANCE_BINS = list(range(0, THREE_D_DISTANCE_MAX + 1, THREE_D_DISTANCE_STEP))
 
-# len(choices) + 1 to include room for uncommon values; + 1 at end for mass
-ATOM_FDIM = sum(len(choices) + 1 for choices in ATOM_FEATURES.values()) + 1
-BOND_FDIM = 2
+# len(choices) + 1 to include room for uncommon values; + 1 at end for mass; + 8 at end for ring membership
+ATOM_FDIM = sum(len(choices) + 1 for choices in ATOM_FEATURES.values()) + 1 + 8
+BOND_FDIM = 9
 
 # Memoization
 SMILES_TO_GRAPH = {}
@@ -78,6 +78,16 @@ def atom_features(atom: Chem.rdchem.Atom, functional_groups: List[int] = None) -
            onek_encoding_unk(atom.GetTotalDegree(), ATOM_FEATURES['degree']) + \
            onek_encoding_unk(int(atom.GetTotalNumHs()), ATOM_FEATURES['num_Hs']) + \
            [atom.GetMass() * 0.01]  # scaled to about the same range as other features
+    features += [
+        atom.IsInRingSize(3),
+        atom.IsInRingSize(4),
+        atom.IsInRingSize(5),
+        atom.IsInRingSize(6),
+        atom.IsInRingSize(7),
+        atom.IsInRingSize(8),
+        atom.IsInRingSize(9),
+        atom.IsInRingSize(10),
+    ]
     if functional_groups is not None:
         features += functional_groups
     return features
@@ -96,7 +106,14 @@ def bond_features(bond: Chem.rdchem.Bond) -> List[Union[bool, int, float]]:
         bt = bond.GetBondType()
         fbond = [
             0,  # bond is not None
-            (bond.IsInRing() if bt is not None else 0)
+            (bond.IsInRingSize(3) if bt is not None else 0),
+            (bond.IsInRingSize(4) if bt is not None else 0),
+            (bond.IsInRingSize(5) if bt is not None else 0),
+            (bond.IsInRingSize(6) if bt is not None else 0),
+            (bond.IsInRingSize(7) if bt is not None else 0),
+            (bond.IsInRingSize(8) if bt is not None else 0),
+            (bond.IsInRingSize(9) if bt is not None else 0),
+            (bond.IsInRingSize(10) if bt is not None else 0),
         ]
     return fbond
 
