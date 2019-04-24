@@ -172,7 +172,10 @@ def add_train_args(parser: ArgumentParser):
                         choices=['ReLU', 'LeakyReLU', 'PReLU', 'tanh', 'SELU', 'ELU'],
                         help='Activation function')
     parser.add_argument('--undirected', action='store_true', default=False,
-                        help='Undirected edges (always sum the two relevant bond vectors)')                     
+                        help='Undirected edges (always sum the two relevant bond vectors)')
+    parser.add_argument('--multitask_split', type=int, nargs='*',
+                        help='Separate FFNs for different tasks after MPN encoding. Each value passed to '
+                             'multitask_split specifies number of tasks that should be grouped into a FFN.')
     parser.add_argument('--ffn_hidden_size', type=int, default=None,
                         help='Hidden dim for higher-capacity FFN (defaults to hidden_size)')
     parser.add_argument('--ffn_num_layers', type=int, default=2,
