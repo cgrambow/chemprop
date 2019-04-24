@@ -1,5 +1,6 @@
 from argparse import Namespace
 
+import torch
 import torch.nn as nn
 
 from .mpn import MPN
@@ -53,30 +54,34 @@ class MoleculeModel(nn.Module):
         activation = get_activation_function(args.activation)
 
         # Create FFN layers
-        if args.ffn_num_layers == 1:
-            ffn = [
-                dropout,
-                nn.Linear(first_linear_dim, args.output_size)
-            ]
-        else:
-            ffn = [
-                dropout,
-                nn.Linear(first_linear_dim, args.ffn_hidden_size)
-            ]
-            for _ in range(args.ffn_num_layers - 2):
+        output_sizes = [args.output_size] if args.multitask_split is None else args.multitask_split
+        ffns = []
+        for output_size in output_sizes:
+            if args.ffn_num_layers == 1:
+                ffn = [
+                    dropout,
+                    nn.Linear(first_linear_dim, output_size)
+                ]
+            else:
+                ffn = [
+                    dropout,
+                    nn.Linear(first_linear_dim, args.ffn_hidden_size)
+                ]
+                for _ in range(args.ffn_num_layers - 2):
+                    ffn.extend([
+                        activation,
+                        dropout,
+                        nn.Linear(args.ffn_hidden_size, args.ffn_hidden_size),
+                    ])
                 ffn.extend([
                     activation,
                     dropout,
-                    nn.Linear(args.ffn_hidden_size, args.ffn_hidden_size),
+                    nn.Linear(args.ffn_hidden_size, output_size),
                 ])
-            ffn.extend([
-                activation,
-                dropout,
-                nn.Linear(args.ffn_hidden_size, args.output_size),
-            ])
+            ffns.append(nn.Sequential(*ffn))
 
         # Create FFN model
-        self.ffn = nn.Sequential(*ffn)
+        self.ffns = nn.ModuleList(ffns)
 
     def forward(self, *input):
         """
@@ -85,7 +90,9 @@ class MoleculeModel(nn.Module):
         :param input: Input.
         :return: The output of the MoleculeModel.
         """
-        output = self.ffn(self.encoder(*input))
+        mol_vecs = self.encoder(*input)
+        outputs = tuple(ffn(mol_vecs) for ffn in self.ffns)
+        output = torch.cat(outputs, dim=-1)
 
         # Don't apply sigmoid during training b/c using BCEWithLogitsLoss
         if self.classification and not self.training:
