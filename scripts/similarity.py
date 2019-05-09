@@ -9,7 +9,6 @@ from typing import List
 
 import math
 import numpy as np
-from rdkit import Chem
 from rdkit import DataStructs
 from rdkit.Chem import AllChem
 from tqdm import tqdm
@@ -18,6 +17,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from chemprop.data import scaffold_to_smiles
 from chemprop.data.utils import get_data
+from chemprop.mol_utils import str_to_mol
 
 
 def scaffold_similarity(smiles_1: List[str], smiles_2: List[str]):
@@ -115,7 +115,7 @@ def morgan_similarity(smiles_1: List[str], smiles_2: List[str], radius: int, sam
     sample_num_pairs = len(sample_smiles_1) * len(sample_smiles_2)
 
     for smile_1, smile_2 in tqdm(product(sample_smiles_1, sample_smiles_2), total=sample_num_pairs):
-        mol_1, mol_2 = Chem.MolFromSmiles(smile_1), Chem.MolFromSmiles(smile_2)
+        mol_1, mol_2 = str_to_mol(smile_1), str_to_mol(smile_2)
         fp_1, fp_2 = AllChem.GetMorganFingerprint(mol_1, radius), AllChem.GetMorganFingerprint(mol_2, radius)
         similarity = DataStructs.TanimotoSimilarity(fp_1, fp_2)
         similarities.append(similarity)
