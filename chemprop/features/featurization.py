@@ -4,6 +4,8 @@ from typing import List, Tuple, Union
 from rdkit import Chem
 import torch
 
+from chemprop.mol_utils import str_to_mol
+
 # Atom feature sizes
 MAX_ATOMIC_NUM = 100
 ATOM_FEATURES = {
@@ -152,7 +154,7 @@ class MolGraph:
         self.b2revb = []  # mapping from bond index to the index of the reverse bond
 
         # Convert smiles to molecule
-        mol = Chem.MolFromSmiles(smiles)
+        mol = str_to_mol(smiles, explicit_hydrogens=args.explicit_hydrogens)
 
         # fake the number of "atoms" if we are collapsing substructures
         self.n_atoms = mol.GetNumAtoms()
