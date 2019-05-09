@@ -8,6 +8,7 @@ from rdkit import Chem
 
 from .scaler import StandardScaler
 from chemprop.features import get_features_generator
+from chemprop.mol_utils import str_to_mol
 
 
 class MoleculeDatapoint:
@@ -44,7 +45,7 @@ class MoleculeDatapoint:
             self.compound_name = None
 
         self.smiles = line[0]  # str
-        self.mol = Chem.MolFromSmiles(self.smiles)
+        self.mol = str_to_mol(self.smiles, explicit_hydrogens=args.explicit_hydrogens)
 
         # Generate additional features if given a generator
         if self.features_generator is not None:

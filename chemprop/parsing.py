@@ -63,6 +63,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Maximum number of data points to load')
     parser.add_argument('--test', action='store_true', default=False,
                         help='Whether to skip training and only test the model')
+    parser.add_argument('--explicit_hydrogens', action='store_true', default=False,
+                        help='Treat hydrogens explicitly')
     parser.add_argument('--features_only', action='store_true', default=False,
                         help='Use only the additional features in an FFN, no graph network')
     parser.add_argument('--features_generator', type=str, nargs='*',

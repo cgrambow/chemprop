@@ -4,6 +4,8 @@ import numpy as np
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
 
+from chemprop.mol_utils import str_to_mol
+
 
 Molecule = Union[str, Chem.Mol]
 FeaturesGenerator = Callable[[Molecule], np.ndarray]
@@ -61,7 +63,7 @@ def morgan_binary_features_generator(mol: Molecule,
     :param num_bits: Number of bits in Morgan fingerprint.
     :return: A 1-D numpy array containing the binary Morgan fingerprint.
     """
-    mol = Chem.MolFromSmiles(mol) if type(mol) == str else mol
+    mol = str_to_mol(mol) if type(mol) == str else mol
     features_vec = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=num_bits)
     features = np.zeros((1,))
     DataStructs.ConvertToNumpyArray(features_vec, features)
@@ -81,7 +83,7 @@ def morgan_counts_features_generator(mol: Molecule,
     :param num_bits: Number of bits in Morgan fingerprint.
     :return: A 1D numpy array containing the counts-based Morgan fingerprint.
     """
-    mol = Chem.MolFromSmiles(mol) if type(mol) == str else mol
+    mol = str_to_mol(mol) if type(mol) == str else mol
     features_vec = AllChem.GetHashedMorganFingerprint(mol, radius, nBits=num_bits)
     features = np.zeros((1,))
     DataStructs.ConvertToNumpyArray(features_vec, features)
