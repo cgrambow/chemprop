@@ -2,14 +2,15 @@
 
 from argparse import ArgumentParser
 import csv
-from rdkit import Chem
+
+from chemprop.mol_utils import str_to_mol
 
 
 def sanitize(data_path: str, save_path: str):
     with open(data_path) as f:
         reader = csv.reader(f)
         header = next(reader)
-        lines = [line for line in reader if line[0] != '' and Chem.MolFromSmiles(line[0]) is not None]
+        lines = [line for line in reader if line[0] != '' and str_to_mol(line[0]) is not None]
 
     with open(save_path) as f:
         writer = csv.writer(f)

@@ -14,7 +14,6 @@ import zipfile
 
 from flask import json, jsonify, redirect, render_template, request, send_file, send_from_directory, url_for
 import numpy as np
-from rdkit import Chem
 from werkzeug.utils import secure_filename
 
 from app import app, db
@@ -26,6 +25,7 @@ from chemprop.parsing import add_predict_args, add_train_args, modify_predict_ar
 from chemprop.train.make_predictions import make_predictions
 from chemprop.train.run_training import run_training
 from chemprop.utils import create_logger, load_task_names, load_args
+from chemprop.mol_utils import str_to_mol
 
 TRAINING = 0
 PROGRESS = mp.Value('d', 0.0)
@@ -315,7 +315,7 @@ def predict():
 
         # Check if header is smiles
         possible_smiles = get_header(data_path)[0]
-        smiles = [possible_smiles] if Chem.MolFromSmiles(possible_smiles) is not None else []
+        smiles = [possible_smiles] if str_to_mol(possible_smiles) is not None else []
 
         # Get remaining smiles
         smiles.extend(get_smiles(data_path))

@@ -9,6 +9,7 @@ from tqdm import tqdm
 import numpy as np
 
 from .data import MoleculeDataset
+from chemprop.mol_utils import str_to_mol
 
 
 def generate_scaffold(mol: Union[str, Chem.Mol], include_chirality: bool = False) -> str:
@@ -19,7 +20,7 @@ def generate_scaffold(mol: Union[str, Chem.Mol], include_chirality: bool = False
     :param include_chirality: Whether to include chirality.
     :return:
     """
-    mol = Chem.MolFromSmiles(mol) if type(mol) == str else mol
+    mol = str_to_mol(mol) if type(mol) == str else mol
     scaffold = MurckoScaffold.MurckoScaffoldSmiles(mol=mol, includeChirality=include_chirality)
 
     return scaffold
