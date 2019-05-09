@@ -5,13 +5,13 @@ import pickle
 import random
 from typing import List, Set, Tuple
 
-from rdkit import Chem
 import numpy as np
 from tqdm import tqdm
 
 from .data import MoleculeDatapoint, MoleculeDataset
 from .scaffold import log_scaffold_stats, scaffold_split
 from chemprop.features import load_features
+from chemprop.mol_utils import str_to_mol
 
 
 def get_task_names(path: str, use_compound_names: bool = False) -> List[str]:
@@ -331,13 +331,13 @@ def validate_data(data_path: str) -> Set[str]:
     elif len(header) < 2:
         errors.add('Header must include task names.')
 
-    mol = Chem.MolFromSmiles(header[0])
+    mol = str_to_mol(header[0])
     if mol is not None:
         errors.add('First row is a SMILES string instead of a header.')
 
     # Validate smiles
     for smile in tqdm(smiles, total=len(smiles)):
-        mol = Chem.MolFromSmiles(smile)
+        mol = str_to_mol(smile)
         if mol is None:
             errors.add('Data includes an invalid SMILES.')
 
