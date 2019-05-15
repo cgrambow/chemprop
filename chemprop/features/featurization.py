@@ -158,9 +158,19 @@ class MolGraph:
 
         # fake the number of "atoms" if we are collapsing substructures
         self.n_atoms = mol.GetNumAtoms()
+
+        # Require atom map numbers when using reactions
+        if args.reaction:
+            if any(a.GetAtomMapNum() == 0 for a in mol.GetAtoms()):
+                raise Exception(f'{smiles} is missing atom map numbers')
+
+            # Ensure that atoms in reactant and product are sorted in the same way
+            atoms = sorted(mol.GetAtoms(), key=lambda a: a.GetAtomMapNum())
+        else:
+            atoms = mol.GetAtoms()
         
         # Get atom features
-        for i, atom in enumerate(mol.GetAtoms()):
+        for i, atom in enumerate(atoms):
             self.f_atoms.append(atom_features(atom))
         self.f_atoms = [self.f_atoms[i] for i in range(self.n_atoms)]
 
@@ -170,7 +180,9 @@ class MolGraph:
         # Get bond features
         for a1 in range(self.n_atoms):
             for a2 in range(a1 + 1, self.n_atoms):
-                bond = mol.GetBondBetweenAtoms(a1, a2)
+                rdkit_idx1 = atoms[a1].GetIdx()
+                rdkit_idx2 = atoms[a2].GetIdx()
+                bond = mol.GetBondBetweenAtoms(rdkit_idx1, rdkit_idx2)
 
                 if bond is None:
                     continue
