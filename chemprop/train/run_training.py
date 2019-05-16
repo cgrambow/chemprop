@@ -45,7 +45,7 @@ def run_training(args: Namespace, logger: Logger = None) -> List[float]:
 
     # Get data
     debug('Loading data')
-    args.task_names = get_task_names(args.data_path)
+    args.task_names = get_task_names(args.data_path, reaction=args.reaction)
     data = get_data(path=args.data_path, args=args, logger=logger)
     args.num_tasks = data.num_tasks()
     args.features_size = data.features_size()
@@ -82,7 +82,7 @@ def run_training(args: Namespace, logger: Logger = None) -> List[float]:
             lines_by_smiles = {}
             indices_by_smiles = {}
             for i, line in enumerate(reader):
-                smiles = line[0]
+                smiles = (line[0], line[1]) if args.reaction else line[0]
                 lines_by_smiles[smiles] = line
                 indices_by_smiles[smiles] = i
 
@@ -90,9 +90,9 @@ def run_training(args: Namespace, logger: Logger = None) -> List[float]:
         for dataset, name in [(train_data, 'train'), (val_data, 'val'), (test_data, 'test')]:
             with open(os.path.join(args.save_dir, name + '_smiles.csv'), 'w') as f:
                 writer = csv.writer(f)
-                writer.writerow(['smiles'])
+                writer.writerow(['rsmiles', 'psmiles'] if args.reaction else ['smiles'])
                 for smiles in dataset.smiles():
-                    writer.writerow([smiles])
+                    writer.writerow(smiles if args.reaction else [smiles])
             with open(os.path.join(args.save_dir, name + '_full.csv'), 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(header)

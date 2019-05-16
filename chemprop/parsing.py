@@ -62,6 +62,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Maximum number of data points to load')
     parser.add_argument('--test', action='store_true', default=False,
                         help='Whether to skip training and only test the model')
+    parser.add_argument('--reaction', action='store_true', default=False,
+                        help='Train a model on reactions instead of molecules')
     parser.add_argument('--explicit_hydrogens', action='store_true', default=False,
                         help='Treat hydrogens explicitly')
     parser.add_argument('--features_only', action='store_true', default=False,
@@ -156,6 +158,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Whether to add bias to linear layers')
     parser.add_argument('--depth', type=int, default=3,
                         help='Number of message passing steps')
+    parser.add_argument('--depth_diff', type=int, default=3,
+                        help='Number of message passing steps in the difference feature encoder')
     parser.add_argument('--dropout', type=float, default=0.0,
                         help='Dropout probability')
     parser.add_argument('--activation', type=str, default='ReLU',
