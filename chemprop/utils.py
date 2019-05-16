@@ -12,7 +12,7 @@ from torch.optim import Adam, Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
 
 from chemprop.data import StandardScaler
-from chemprop.models import build_model, MoleculeModel
+from chemprop.models import build_model, MoleculeModel, ReactionModel
 from chemprop.nn_utils import NoamLR
 
 
@@ -33,14 +33,14 @@ def makedirs(path: str, isfile: bool = False):
 
 
 def save_checkpoint(path: str,
-                    model: MoleculeModel,
+                    model: Union[MoleculeModel, ReactionModel],
                     scaler: StandardScaler = None,
                     features_scaler: StandardScaler = None,
                     args: Namespace = None):
     """
     Saves a model checkpoint.
 
-    :param model: A MoleculeModel.
+    :param model: A MoleculeModel or ReactionModel.
     :param scaler: A StandardScaler fitted on the data.
     :param features_scaler: A StandardScaler fitted on the features.
     :param args: Arguments namespace.
@@ -64,7 +64,7 @@ def save_checkpoint(path: str,
 def load_checkpoint(path: str,
                     current_args: Namespace = None,
                     cuda: bool = None,
-                    logger: logging.Logger = None) -> MoleculeModel:
+                    logger: logging.Logger = None) -> Union[MoleculeModel, ReactionModel]:
     """
     Loads a model checkpoint.
 
@@ -72,7 +72,7 @@ def load_checkpoint(path: str,
     :param current_args: The current arguments. Replaces the arguments loaded from the checkpoint if provided.
     :param cuda: Whether to move model to cuda.
     :param logger: A logger.
-    :return: The loaded MoleculeModel.
+    :return: The loaded MoleculeModel or ReactionModel.
     """
     debug = logger.debug if logger is not None else print
 
