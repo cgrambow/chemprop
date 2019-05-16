@@ -7,7 +7,7 @@ import torch
 from tqdm import tqdm
 
 from .predict import predict
-from chemprop.data import MoleculeDataset
+from chemprop.data import MoleculeDataset, ReactionDataset
 from chemprop.data.utils import get_data, get_data_from_smiles
 from chemprop.utils import load_args, load_checkpoint, load_scalers
 
@@ -39,9 +39,14 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
         test_data = get_data(path=args.test_path, args=args, use_compound_names=args.use_compound_names, skip_invalid_smiles=False)
 
     print('Validating SMILES')
-    valid_indices = [i for i in range(len(test_data)) if test_data[i].mol is not None]
+    if args.reaction:
+        valid_indices = [i for i in range(len(test_data))
+                         if test_data[i].rmol is not None and test_data[i].pmol is not None]
+    else:
+        valid_indices = [i for i in range(len(test_data)) if test_data[i].mol is not None]
     full_data = test_data
-    test_data = MoleculeDataset([test_data[i] for i in valid_indices])
+    valid_data = [test_data[i] for i in valid_indices]
+    test_data = ReactionDataset(valid_data) if args.reaction else MoleculeDataset(valid_data)
 
     # Edge case if empty list of smiles is provided
     if len(test_data) == 0:
@@ -96,7 +101,10 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
         if args.use_compound_names:
             header.append('compound_names')
 
-        header.append('smiles')
+        if args.reaction:
+            header.extend(['rsmiles', 'psmiles'])
+        else:
+            header.append('smiles')
 
         if args.dataset_type == 'multiclass':
             for name in args.task_names:
@@ -112,7 +120,10 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
             if args.use_compound_names:
                 row.append(compound_names[i])
 
-            row.append(test_smiles[i])
+            if args.reaction:
+                row.extend(test_smiles[i])
+            else:
+                row.append(test_smiles[i])
 
             if avg_preds[i] is not None:
                 if args.dataset_type == 'multiclass':
