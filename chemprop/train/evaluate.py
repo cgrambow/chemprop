@@ -1,10 +1,10 @@
 import logging
-from typing import Callable, List
+from typing import Callable, List, Union
 
 import torch.nn as nn
 
 from .predict import predict
-from chemprop.data import MoleculeDataset, StandardScaler
+from chemprop.data import MoleculeDataset, ReactionDataset, StandardScaler
 
 
 def evaluate_predictions(preds: List[List[float]],
@@ -65,7 +65,7 @@ def evaluate_predictions(preds: List[List[float]],
 
 
 def evaluate(model: nn.Module,
-             data: MoleculeDataset,
+             data: Union[MoleculeDataset, ReactionDataset],
              num_tasks: int,
              metric_func: Callable,
              batch_size: int,
@@ -76,7 +76,7 @@ def evaluate(model: nn.Module,
     Evaluates an ensemble of models on a dataset.
 
     :param model: A model.
-    :param data: A MoleculeDataset.
+    :param data: A MoleculeDataset or ReactionDataset.
     :param num_tasks: Number of tasks.
     :param metric_func: Metric function which takes in a list of targets and a list of predictions.
     :param batch_size: Batch size.
