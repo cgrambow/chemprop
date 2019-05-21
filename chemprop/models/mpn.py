@@ -215,11 +215,11 @@ class MPNDiffEncoder(nn.Module):
         if self.args.cuda or next(self.parameters()).is_cuda:
             f_bonds, a2b, a2a = f_bonds.cuda(), a2b.cuda(), a2a.cuda()
 
-        if self.depth > 0:
-            # Input
-            input = self.W_i(atom_features)  # num_atoms x atom_fdim
-            message = self.act_func(input)  # num_atoms x hidden_size
+        # Input
+        input = self.W_i(atom_features)  # num_atoms x atom_fdim
+        message = self.act_func(input)  # num_atoms x hidden_size
 
+        if self.depth > 0:
             # Message passing
             for depth in range(self.depth - 1):
                 nei_a_message = index_select_ND(message, a2a)  # num_atoms x max_num_bonds x hidden
@@ -242,7 +242,7 @@ class MPNDiffEncoder(nn.Module):
             atom_hiddens = self.act_func(self.W_o(a_input))  # num_atoms x hidden
             atom_hiddens = self.dropout_layer(atom_hiddens)  # num_atoms x hidden
         else:
-            atom_hiddens = atom_features
+            atom_hiddens = self.dropout_layer(message)
 
         # Readout
         vecs = []
