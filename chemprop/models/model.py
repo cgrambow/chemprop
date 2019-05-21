@@ -42,7 +42,7 @@ class Model(nn.Module):
         if args.features_only:
             first_linear_dim = args.features_size
         else:
-            first_linear_dim = args.diff_hidden_size if args.reaction else args.hidden_size
+            first_linear_dim = 2 * args.hidden_size + args.diff_hidden_size if args.reaction else args.hidden_size
             if args.use_input_features:
                 first_linear_dim += args.features_dim
 
@@ -156,11 +156,14 @@ class ReactionModel(Model):
         :param features_batch: A list of ndarrays containing additional features.
         :return: The output of the ReactionModel.
         """
-        r_atom_features = self.encoder(rbatch)
-        p_atom_features = self.encoder(pbatch)
+        r_features, r_atom_features = self.encoder(rbatch)
+        p_features, p_atom_features = self.encoder(pbatch)
 
         diff_features = p_atom_features - r_atom_features
-        output = self.ffn(self.diff_encoder(diff_features, pbatch, features_batch))  # use product graph
+        diff_features = self.diff_encoder(diff_features, pbatch, features_batch)  # use product graph
+
+        all_features = torch.cat((r_features, p_features, diff_features), dim=1)
+        output = self.ffn(all_features)
 
         # Don't apply sigmoid during training b/c using BCEWithLogitsLoss
         if self.classification and not self.training:

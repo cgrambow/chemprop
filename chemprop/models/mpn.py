@@ -18,7 +18,7 @@ class MPNEncoder(nn.Module):
         :param args: Arguments.
         :param atom_fdim: Atom features dimension.
         :param bond_fdim: Bond features dimension.
-        :param return_atom_hiddens: Return hidden atom feature vectors instead of mol vector.
+        :param return_atom_hiddens: Return hidden atom feature vectors in addition to mol vectors.
         """
         super(MPNEncoder, self).__init__()
         self.return_atom_hiddens = return_atom_hiddens
@@ -127,9 +127,6 @@ class MPNEncoder(nn.Module):
         atom_hiddens = self.act_func(self.W_o(a_input))  # num_atoms x hidden
         atom_hiddens = self.dropout_layer(atom_hiddens)  # num_atoms x hidden
 
-        if self.return_atom_hiddens:
-            return atom_hiddens
-
         # Readout
         mol_vecs = []
         for i, (a_start, a_size) in enumerate(a_scope):
@@ -150,6 +147,8 @@ class MPNEncoder(nn.Module):
                 features_batch = features_batch.view([1,features_batch.shape[0]])
             mol_vecs = torch.cat([mol_vecs, features_batch], dim=1)  # (num_molecules, hidden_size)
 
+        if self.return_atom_hiddens:
+            return mol_vecs, atom_hiddens
         return mol_vecs  # num_molecules x hidden
 
 
