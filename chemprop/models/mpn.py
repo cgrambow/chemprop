@@ -219,27 +219,30 @@ class MPNDiffEncoder(nn.Module):
         input = self.W_i(atom_features)  # num_atoms x atom_fdim
         message = self.act_func(input)  # num_atoms x hidden_size
 
-        # Message passing
-        for depth in range(self.depth - 1):
+        if self.depth > 0:
+            # Message passing
+            for depth in range(self.depth - 1):
+                nei_a_message = index_select_ND(message, a2a)  # num_atoms x max_num_bonds x hidden
+                nei_f_bonds = index_select_ND(f_bonds, a2b)  # num_atoms x max_num_bonds x (bond_fdim (+ atom_fdim_MPN))
+
+                # If using bond messages in MPN, bond features include some atom features,
+                # but we only want the pure bond features here
+                nei_f_bonds = nei_f_bonds[:, :, -self.bond_fdim:]
+
+                nei_message = torch.cat((nei_a_message, nei_f_bonds), dim=2)  # num_atoms x max_num_bonds x hidden + bond_fdim
+                message = nei_message.sum(dim=1)  # num_atoms x hidden + bond_fdim
+
+                message = self.W_h(message)
+                message = self.act_func(input + message)  # num_atoms x hidden_size
+                message = self.dropout_layer(message)  # num_atoms x hidden
+
             nei_a_message = index_select_ND(message, a2a)  # num_atoms x max_num_bonds x hidden
-            nei_f_bonds = index_select_ND(f_bonds, a2b)  # num_atoms x max_num_bonds x (bond_fdim (+ atom_fdim_MPN))
-
-            # If using bond messages in MPN, bond features include some atom features,
-            # but we only want the pure bond features here
-            nei_f_bonds = nei_f_bonds[:, :, -self.bond_fdim:]
-
-            nei_message = torch.cat((nei_a_message, nei_f_bonds), dim=2)  # num_atoms x max_num_bonds x hidden + bond_fdim
-            message = nei_message.sum(dim=1)  # num_atoms x hidden + bond_fdim
-
-            message = self.W_h(message)
-            message = self.act_func(input + message)  # num_atoms x hidden_size
-            message = self.dropout_layer(message)  # num_atoms x hidden
-
-        nei_a_message = index_select_ND(message, a2a)  # num_atoms x max_num_bonds x hidden
-        a_message = nei_a_message.sum(dim=1)  # num_atoms x hidden
-        a_input = torch.cat([atom_features, a_message], dim=1)  # num_atoms x (atom_fdim + hidden)
-        atom_hiddens = self.act_func(self.W_o(a_input))  # num_atoms x hidden
-        atom_hiddens = self.dropout_layer(atom_hiddens)  # num_atoms x hidden
+            a_message = nei_a_message.sum(dim=1)  # num_atoms x hidden
+            a_input = torch.cat([atom_features, a_message], dim=1)  # num_atoms x (atom_fdim + hidden)
+            atom_hiddens = self.act_func(self.W_o(a_input))  # num_atoms x hidden
+            atom_hiddens = self.dropout_layer(atom_hiddens)  # num_atoms x hidden
+        else:
+            atom_hiddens = self.dropout_layer(message)
 
         # Readout
         vecs = []
