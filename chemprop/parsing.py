@@ -154,6 +154,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Number of models in ensemble')
     parser.add_argument('--hidden_size', type=int, default=300,
                         help='Dimensionality of hidden layers in MPN')
+    parser.add_argument('--diff_hidden_size', type=int, default=None,
+                        help='Dimensionality of hidden layers in MPNDiff (defaults to hidden_size)')
     parser.add_argument('--bias', action='store_true', default=False,
                         help='Whether to add bias to linear layers')
     parser.add_argument('--depth', type=int, default=3,
@@ -285,6 +287,9 @@ def modify_train_args(args: Namespace):
         assert not args.features_scaling
 
     args.num_lrs = 1
+
+    if args.diff_hidden_size is None:
+        args.diff_hidden_size = args.hidden_size
 
     if args.ffn_hidden_size is None:
         args.ffn_hidden_size = args.hidden_size
