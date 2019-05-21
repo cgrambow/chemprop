@@ -165,7 +165,7 @@ class MPNDiffEncoder(nn.Module):
         super(MPNDiffEncoder, self).__init__()
         self.atom_fdim = atom_fdim
         self.bond_fdim = get_bond_fdim(args)
-        self.hidden_size = args.hidden_size
+        self.hidden_size = args.diff_hidden_size
         self.bias = args.bias
         self.depth = args.depth_diff
         self.dropout = args.dropout
