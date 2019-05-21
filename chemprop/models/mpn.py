@@ -57,7 +57,8 @@ class MPNEncoder(nn.Module):
             w_h_input_size = self.hidden_size
 
         # Shared weight matrix across depths (default)
-        self.W_h = nn.Linear(w_h_input_size, self.hidden_size, bias=self.bias)
+        if self.depth > 1:
+            self.W_h = nn.Linear(w_h_input_size, self.hidden_size, bias=self.bias)
 
         self.W_o = nn.Linear(self.atom_fdim + self.hidden_size, self.hidden_size)
 
@@ -187,9 +188,11 @@ class MPNDiffEncoder(nn.Module):
         self.W_i = nn.Linear(self.atom_fdim, self.hidden_size, bias=self.bias)
 
         # Shared weight matrix across depths (default)
-        self.W_h = nn.Linear(self.hidden_size + self.bond_fdim, self.hidden_size, bias=self.bias)
+        if self.depth > 1:
+            self.W_h = nn.Linear(self.hidden_size + self.bond_fdim, self.hidden_size, bias=self.bias)
 
-        self.W_o = nn.Linear(self.atom_fdim + self.hidden_size, self.hidden_size)
+        if self.depth > 0:
+            self.W_o = nn.Linear(self.atom_fdim + self.hidden_size, self.hidden_size)
 
     def forward(self,
                 atom_features: torch.FloatTensor,
