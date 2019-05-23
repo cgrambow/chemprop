@@ -122,8 +122,6 @@ def get_data(path: str,
         use_compound_names = False
         reaction = reaction if reaction is not None else False
 
-    max_data_size = max_data_size or float('inf')
-
     # Load features
     if features_path is not None:
         features_data = []
@@ -150,26 +148,29 @@ def get_data(path: str,
 
             lines.append(line)
 
-            if len(lines) >= max_data_size:
-                break
+        keep_idxs = list(range(len(lines)))
+        if max_data_size is not None:
+            random.seed(args.seed)
+            random.shuffle(keep_idxs)
+            keep_idxs = keep_idxs[:max_data_size]
 
         if reaction:
             data = ReactionDataset([
                 ReactionDatapoint(
-                    line=line,
+                    line=lines[i],
                     args=args,
                     features=features_data[i] if features_data is not None else None,
                     use_compound_names=use_compound_names
-                ) for i, line in tqdm(enumerate(lines), total=len(lines))
+                ) for i in tqdm(keep_idxs, total=len(keep_idxs))
             ])
         else:
             data = MoleculeDataset([
                 MoleculeDatapoint(
-                    line=line,
+                    line=lines[i],
                     args=args,
                     features=features_data[i] if features_data is not None else None,
                     use_compound_names=use_compound_names
-                ) for i, line in tqdm(enumerate(lines), total=len(lines))
+                ) for i in tqdm(keep_idxs, total=len(keep_idxs))
             ])
 
     # Filter out invalid SMILES
