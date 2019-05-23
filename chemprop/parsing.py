@@ -102,6 +102,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Method of splitting the data into train/val/test')
     parser.add_argument('--split_sizes', type=float, nargs=3, default=[0.8, 0.1, 0.1],
                         help='Split proportions for train/validation/test sets')
+    parser.add_argument('--validate_on_first_target', action='store_true', default=False,
+                        help='Save model if validation score on first target improves even if overall score drops')
     parser.add_argument('--num_folds', type=int, default=1,
                         help='Number of folds when performing cross validation')
     parser.add_argument('--folds_file', type=str, default=None,
