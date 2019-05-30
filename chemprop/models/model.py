@@ -162,6 +162,7 @@ class ReactionModel(Model):
         if args.freeze_mpn:
             for param in self.encoder.parameters():
                 param.requires_grad = False
+        if args.freeze_mpn_diff:
             for param in self.diff_encoder.parameters():
                 param.requires_grad = False
 
