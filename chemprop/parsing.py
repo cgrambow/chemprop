@@ -158,6 +158,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Final learning rate')
     parser.add_argument('--no_features_scaling', action='store_true', default=False,
                         help='Turn off scaling of features')
+    parser.add_argument('--freeze_mpn', action='store_true', default=False,
+                        help='Freeze MPN weights during training')
 
     # Model arguments
     parser.add_argument('--ensemble_size', type=int, default=1,

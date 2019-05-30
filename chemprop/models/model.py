@@ -110,6 +110,10 @@ class MoleculeModel(Model):
         """
         self.encoder = MPN(args)
 
+        if args.freeze_mpn:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+
     def forward(self, *input):
         """
         Runs the MoleculeModel on input.
@@ -154,6 +158,12 @@ class ReactionModel(Model):
         """
         self.encoder = MPN(args, return_atom_hiddens=True)
         self.diff_encoder = MPNDiff(args, atom_fdim=args.hidden_size)
+
+        if args.freeze_mpn:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+            for param in self.diff_encoder.parameters():
+                param.requires_grad = False
 
     def forward(self,
                 rbatch: Union[List[str], BatchMolGraph],
