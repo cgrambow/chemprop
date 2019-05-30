@@ -160,6 +160,8 @@ def add_train_args(parser: ArgumentParser):
                         help='Turn off scaling of features')
     parser.add_argument('--freeze_mpn', action='store_true', default=False,
                         help='Freeze MPN weights during training')
+    parser.add_argument('--freeze_mpn_diff', action='store_true', default=False,
+                        help='Freeze MPNDiff weights during training')
 
     # Model arguments
     parser.add_argument('--ensemble_size', type=int, default=1,
