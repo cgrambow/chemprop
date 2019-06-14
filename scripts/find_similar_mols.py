@@ -16,7 +16,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from chemprop.data.utils import get_data_from_smiles, get_smiles
 from chemprop.features.features_generators import morgan_binary_features_generator
 from chemprop.models import MoleculeModel
-from chemprop.nn_utils import compute_molecule_vectors
+from chemprop.nn_utils import compute_embeddings
 from chemprop.utils import load_checkpoint, makedirs
 
 
@@ -44,8 +44,8 @@ def find_similar_mols(test_smiles: List[str],
     print(f'Computing {distance_measure} vectors')
     if distance_measure == 'embedding':
         assert model is not None
-        test_vecs = np.array(compute_molecule_vectors(model=model, data=test_data, batch_size=batch_size))
-        train_vecs = np.array(compute_molecule_vectors(model=model, data=train_data, batch_size=batch_size))
+        test_vecs = np.array(compute_embeddings(model=model, data=test_data, batch_size=batch_size))
+        train_vecs = np.array(compute_embeddings(model=model, data=train_data, batch_size=batch_size))
         metric = 'cosine'
     elif distance_measure == 'morgan':
         test_vecs = np.array([morgan_binary_features_generator(smiles) for smiles in tqdm(test_smiles, total=len(test_smiles))])
