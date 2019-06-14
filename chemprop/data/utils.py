@@ -53,19 +53,23 @@ def get_num_tasks(path: str) -> int:
     return len(get_header(path)) - 1
 
 
-def get_smiles(path: str, header: bool = True) -> List[str]:
+def get_smiles(path: str, header: bool = True, reaction: bool = False) -> Union[List[str], List[Tuple[str, str]]]:
     """
     Returns the smiles strings from a data CSV file (assuming the first line is a header).
 
     :param path: Path to a CSV file.
     :param header: Whether the CSV file contains a header (that will be skipped).
+    :param reaction: Whether the CSV file contains reactions instead of molecules.
     :return: A list of smiles strings.
     """
     with open(path) as f:
         reader = csv.reader(f)
         if header:
             next(reader)  # Skip header
-        smiles = [line[0] for line in reader]
+        if reaction:
+            smiles = [(line[0], line[1]) for line in reader]
+        else:
+            smiles = [line[0] for line in reader]
 
     return smiles
 
@@ -187,18 +191,25 @@ def get_data(path: str,
     return data
 
 
-def get_data_from_smiles(smiles: List[str], skip_invalid_smiles: bool = True, logger: Logger = None) -> MoleculeDataset:
+def get_data_from_smiles(smiles: Union[List[str], List[Tuple[str, str]]],
+                         args: Namespace = None,
+                         skip_invalid_smiles: bool = True,
+                         logger: Logger = None) -> Union[MoleculeDataset, ReactionDataset]:
     """
-    Converts SMILES to a MoleculeDataset.
+    Converts SMILES to a MoleculeDataset or ReactionDataset.
 
-    :param smiles: A list of SMILES strings.
+    :param smiles: A list of (tuples of) SMILES strings.
+    :param args: Arguments.
     :param skip_invalid_smiles: Whether to skip and filter out invalid smiles.
     :param logger: Logger.
     :return: A MoleculeDataset with all of the provided SMILES.
     """
     debug = logger.debug if logger is not None else print
 
-    data = MoleculeDataset([MoleculeDatapoint([smile]) for smile in smiles])
+    if isinstance(smiles[0], str):
+        data = MoleculeDataset([MoleculeDatapoint([smile], args=args) for smile in smiles])
+    else:
+        data = ReactionDataset([ReactionDatapoint(list(smile), args=args) for smile in smiles])
 
     # Filter out invalid SMILES
     if skip_invalid_smiles:
