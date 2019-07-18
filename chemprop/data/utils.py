@@ -96,6 +96,7 @@ def filter_invalid_smiles(data: Union[MoleculeDataset, ReactionDataset]) -> Unio
 def get_data(path: str,
              skip_invalid_smiles: bool = True,
              args: Namespace = None,
+             reaction: bool = None,
              features_path: List[str] = None,
              max_data_size: int = None,
              use_compound_names: bool = None,
@@ -106,6 +107,7 @@ def get_data(path: str,
     :param path: Path to a CSV file.
     :param skip_invalid_smiles: Whether to skip and filter out invalid smiles.
     :param args: Arguments.
+    :param reaction: Whether loading reactions instead of molecules.
     :param features_path: A list of paths to files containing features. If provided, it is used
     in place of args.features_path.
     :param max_data_size: The maximum number of data points to load.
@@ -121,7 +123,7 @@ def get_data(path: str,
         features_path = features_path if features_path is not None else args.features_path
         max_data_size = max_data_size if max_data_size is not None else args.max_data_size
         use_compound_names = use_compound_names if use_compound_names is not None else args.use_compound_names
-        reaction = args.reaction
+        reaction = reaction if reaction is not None else args.reaction
     else:
         use_compound_names = False
         reaction = reaction if reaction is not None else False

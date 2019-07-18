@@ -51,7 +51,7 @@ def generate_and_save_features(args: Namespace):
     makedirs(args.save_path, isfile=True)
 
     # Get data and features function
-    data = get_data(path=args.data_path, max_data_size=None)
+    data = get_data(path=args.data_path, reaction=args.reaction, max_data_size=None)
     features_generator = get_features_generator(args.features_generator)
     temp_save_dir = args.save_path + '_temp'
 
@@ -74,12 +74,19 @@ def generate_and_save_features(args: Namespace):
 
     # Build features map function
     data = data[len(features):]  # restrict to data for which features have not been computed yet
-    mols = (d.mol for d in data)
+    mols = ((d.rmol, d.pmol) for d in data) if args.reaction else (d.mol for d in data)
+
+    if args.reaction:
+        def _features_generator(_mols):
+            _rmol, _pmol = _mols
+            return np.asarray(features_generator(_pmol)) - np.asarray(features_generator(_rmol))
+    else:
+        _features_generator = features_generator
 
     if args.sequential:
-        features_map = map(features_generator, mols)
+        features_map = map(_features_generator, mols)
     else:
-        features_map = Pool().imap(features_generator, mols)
+        features_map = Pool().imap(_features_generator, mols)
 
     # Get features
     temp_features = []
@@ -112,6 +119,8 @@ if __name__ == '__main__':
                         help='Type of features to generate')
     parser.add_argument('--save_path', type=str, required=True,
                         help='Path to .npz file where features will be saved as a compressed numpy archive')
+    parser.add_argument('--reaction', action='store_true', default=False,
+                        help='Save difference features for reactions instead of molecules')
     parser.add_argument('--save_frequency', type=int, default=10000,
                         help='Frequency with which to save the features')
     parser.add_argument('--restart', action='store_true', default=False,
