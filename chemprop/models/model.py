@@ -34,6 +34,10 @@ class MoleculeModel(nn.Module):
         """
         self.encoder = MPN(args)
 
+        if args.freeze_mpn:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+
     def create_ffn(self, args: Namespace):
         """
         Creates the feed-forward network for the model.
