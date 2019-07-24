@@ -1,0 +1,40 @@
+package:
+  name: chemprop
+  version: 0.0.1
+
+source:
+  path: ../
+
+build:
+  number: 0
+  noarch: python
+
+requirements:
+  build:
+    - python >=3.6
+    - setuptools
+
+  run:
+    - python >=3.6
+    - gunicorn
+    - rdkit
+    - pytorch
+    - torchvision
+    - flask
+    - hyperopt
+    - {{ pin_compatible('numpy') }}
+    - scikit-learn
+    - scipy
+    - tensorflow
+    - tensorboardX
+    - tqdm
+    - descriptastorus  # Optional
+
+test:
+  imports:
+    - chemprop
+
+about:
+  home: https://github.com/cgrambow/chemprop
+  license: MIT
+  summary: "Molecular Property Prediction with Message Passing Neural Networks"
