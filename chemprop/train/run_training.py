@@ -89,22 +89,25 @@ def run_training(args: Namespace, logger: Logger = None) -> List[float]:
                 indices_by_smiles[smiles] = i
 
         all_split_indices = []
-        for dataset, name in [(train_data, 'train'), (val_data, 'val'), (test_data, 'test')]:
-            with open(os.path.join(args.save_dir, name + '_smiles.csv'), 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(['rsmiles', 'psmiles'] if args.reaction else ['smiles'])
+        all_data = [train_data, val_data, test_data]
+        all_data_names = ['train', 'val', 'test']
+        for dataset, name, split_size in zip(all_data, all_data_names, args.split_sizes):
+            if split_size > 0.0:
+                with open(os.path.join(args.save_dir, name + '_smiles.csv'), 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['rsmiles', 'psmiles'] if args.reaction else ['smiles'])
+                    for smiles in dataset.smiles():
+                        writer.writerow(smiles if args.reaction else [smiles])
+                with open(os.path.join(args.save_dir, name + '_full.csv'), 'w') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(header)
+                    for smiles in dataset.smiles():
+                        writer.writerow(lines_by_smiles[smiles])
+                split_indices = []
                 for smiles in dataset.smiles():
-                    writer.writerow(smiles if args.reaction else [smiles])
-            with open(os.path.join(args.save_dir, name + '_full.csv'), 'w') as f:
-                writer = csv.writer(f)
-                writer.writerow(header)
-                for smiles in dataset.smiles():
-                    writer.writerow(lines_by_smiles[smiles])
-            split_indices = []
-            for smiles in dataset.smiles():
-                split_indices.append(indices_by_smiles[smiles])
-                split_indices = sorted(split_indices)
-            all_split_indices.append(split_indices)
+                    split_indices.append(indices_by_smiles[smiles])
+                    split_indices = sorted(split_indices)
+                all_split_indices.append(split_indices)
         with open(os.path.join(args.save_dir, 'split_indices.pckl'), 'wb') as f:
             pickle.dump(all_split_indices, f)
 
