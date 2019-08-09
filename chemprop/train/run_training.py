@@ -61,9 +61,11 @@ def run_training(args: Namespace, logger: Logger = None) -> List[float]:
     if args.separate_val_path and args.separate_test_path:
         train_data = data
     elif args.separate_val_path:
-        train_data, _, test_data = split_data(data=data, split_type=args.split_type, sizes=(0.8, 0.2, 0.0), seed=args.seed, args=args, logger=logger)
+        assert args.split_sizes[1] == 0.0
+        train_data, _, test_data = split_data(data=data, split_type=args.split_type, sizes=args.split_sizes, seed=args.seed, args=args, logger=logger)
     elif args.separate_test_path:
-        train_data, val_data, _ = split_data(data=data, split_type=args.split_type, sizes=(0.8, 0.2, 0.0), seed=args.seed, args=args, logger=logger)
+        assert args.split_sizes[2] == 0.0
+        train_data, val_data, _ = split_data(data=data, split_type=args.split_type, sizes=args.split_sizes, seed=args.seed, args=args, logger=logger)
     else:
         train_data, val_data, test_data = split_data(data=data, split_type=args.split_type, sizes=args.split_sizes, seed=args.seed, args=args, logger=logger)
 
