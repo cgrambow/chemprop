@@ -26,7 +26,7 @@ def generate_scaffold(mol: Union[str, Chem.Mol], include_chirality: bool = False
     return scaffold
 
 
-def scaffold_to_smiles(mols: Union[List[str], List[Chem.Mol]],
+def scaffold_to_smiles(mols: Union[List[str], List[Chem.Mol], List[Tuple[Chem.Mol, Chem.Mol]]],
                        use_indices: bool = False) -> Dict[str, Union[Set[str], Set[int]]]:
     """
     Computes scaffold for each smiles string and returns a mapping from scaffolds to sets of smiles.
@@ -37,8 +37,26 @@ def scaffold_to_smiles(mols: Union[List[str], List[Chem.Mol]],
     :return: A dictionary mapping each unique scaffold to all smiles (or smiles indices) which have that scaffold.
     """
     scaffolds = defaultdict(set)
+    scaffold_alternatives = defaultdict(set)
     for i, mol in tqdm(enumerate(mols), total=len(mols)):
-        scaffold = generate_scaffold(mol)
+        if isinstance(mol, tuple):
+            scaffold1 = generate_scaffold(mol[0])
+            scaffold2 = generate_scaffold(mol[1])
+            for k, v in scaffold_alternatives.items():
+                if scaffold1 in v:
+                    scaffold = k
+                    scaffold_alternatives[scaffold].add(scaffold2)
+                    break
+                if scaffold2 in v:
+                    scaffold = k
+                    scaffold_alternatives[scaffold].add(scaffold1)
+                    break
+            else:
+                scaffold = scaffold1
+                scaffold_alternatives[scaffold].add(scaffold1)
+                scaffold_alternatives[scaffold].add(scaffold2)
+        else:
+            scaffold = generate_scaffold(mol)
         if use_indices:
             scaffolds[scaffold].add(i)
         else:
@@ -73,8 +91,7 @@ def scaffold_split(data: Union[MoleculeDataset, ReactionDataset],
 
     # Map from scaffold to index in the data
     # Only use reactant molecules for reaction datasets
-    mols = list(zip(*data.mols()))[0] if isinstance(data, ReactionDataset) else data.mols()
-    scaffold_to_indices = scaffold_to_smiles(mols, use_indices=True)
+    scaffold_to_indices = scaffold_to_smiles(data.mols(), use_indices=True)
 
     if balanced:  # Put stuff that's bigger than half the val/test size into train, rest just order randomly
         index_sets = list(scaffold_to_indices.values())
