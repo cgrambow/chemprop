@@ -18,8 +18,8 @@ requirements:
     - python >=3.6
     - gunicorn
     - rdkit
-    - pytorch
-    - torchvision
+    - pytorch-cpu
+    - torchvision-cpu
     - flask
     - hyperopt
     - {{ pin_compatible('numpy') }}
