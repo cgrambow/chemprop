@@ -1,5 +1,7 @@
-# Molecular Property Prediction
+# Molecular and Reaction Property Prediction
 This repository contains message passing neural networks for molecular property prediction as described in the paper [Analyzing Learned Molecular Representations for Property Prediction](https://pubs.acs.org/doi/abs/10.1021/acs.jcim.9b00237).
+
+Additionally, this version can predict properties of chemical reactions using a difference neural network when provided with atom-mapped reactants and products.
 
 ## Table of Contents
 
@@ -98,6 +100,14 @@ CCN1C(=O)NC(c2ccccc2)C1=O,0,0,0,0,0,0,0,,0,,0,0
 ...
 ```
 Datasets from [MoleculeNet](http://moleculenet.ai/) and a 450K subset of ChEMBL from [http://www.bioinf.jku.at/research/lsc/index.html](http://www.bioinf.jku.at/research/lsc/index.html) have been preprocessed and are available in `data.tar.gz`. To uncompress them, run `tar xvzf data.tar.gz`.
+
+To train a model to predict chemical reaction properties, the training data must contain atom-mapped reactant and product molecules in addition to the targets. Typically, hydrogens are specified explicitly for reactions. For example:
+```
+rsmiles,psmiles,ea,dh
+[O:1]([c:2]1[n:3][o:4][c:5]([H:8])[c:6]1[H:9])[H:7],[O:1]=[c:2]1[n:3]([H:7])[o:4][c:5]([H:8])[c:6]1[H:9],50.34,2.63
+[O:1]=[C:2]([C:3](=[O:4])[C:5]#[N:6])[H:7],[O:1]=[C:2]([O+:4]=[C:3]=[C:5]=[N-:6])[H:7],47.66,46.89
+...
+```
 
 ## Training
 
