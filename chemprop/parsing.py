@@ -43,6 +43,8 @@ def add_predict_args(parser: ArgumentParser):
                         help='Turn off scaling of features')
     parser.add_argument('--max_data_size', type=int,
                         help='Maximum number of data points to load')
+    parser.add_argument('--uncertainty', action='store_true', default=False,
+                        help='Predict uncertainty using ensemble')
 
 
 def add_train_args(parser: ArgumentParser):

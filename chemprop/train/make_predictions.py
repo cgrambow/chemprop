@@ -65,8 +65,9 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
         sum_preds = np.zeros((len(test_data), args.num_tasks, args.multiclass_num_classes))
     else:
         sum_preds = np.zeros((len(test_data), args.num_tasks))
+    all_preds = np.zeros((len(test_data), args.num_tasks, len(args.checkpoint_paths))) if args.uncertainty else None
     print(f'Predicting with an ensemble of {len(args.checkpoint_paths)} models')
-    for checkpoint_path in tqdm(args.checkpoint_paths, total=len(args.checkpoint_paths)):
+    for model_idx, checkpoint_path in enumerate(tqdm(args.checkpoint_paths, total=len(args.checkpoint_paths))):
         # Load model
         model = load_checkpoint(checkpoint_path, cuda=args.cuda)
         model_preds = predict(
@@ -76,10 +77,15 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
             scaler=scaler
         )
         sum_preds += np.array(model_preds)
+        if args.uncertainty:
+            all_preds[:, :, model_idx] = model_preds
 
     # Ensemble predictions
     avg_preds = sum_preds / len(args.checkpoint_paths)
     avg_preds = avg_preds.tolist()
+    if args.uncertainty:
+        uncs = np.var(all_preds, axis=2)
+        uncs = uncs.tolist()
 
     # Save predictions
     assert len(test_data) == len(avg_preds)
@@ -90,6 +96,11 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
     for i, si in enumerate(valid_indices):
         full_preds[si] = avg_preds[i]
     avg_preds = full_preds
+    if args.uncertainty:
+        full_uncs = [None] * len(full_data)
+        for i, si in enumerate(valid_indices):
+            full_uncs[si] = uncs[i]
+        uncs = full_uncs
     test_smiles = full_data.smiles()
 
     # Write predictions
@@ -112,6 +123,10 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
                     header.append(name + '_class' + str(i))
         else:
             header.extend(args.task_names)
+
+        if args.uncertainty:
+            header.append(header.extend([tn + '_unc' for tn in args.task_names]))
+
         writer.writerow(header)
 
         for i in range(len(avg_preds)):
@@ -131,11 +146,13 @@ def make_predictions(args: Namespace, smiles: List[str] = None) -> List[Optional
                         row.extend(task_probs)
                 else:
                     row.extend(avg_preds[i])
+                    if args.uncertainty:
+                        row.extend(uncs[i])
             else:
                 if args.dataset_type == 'multiclass':
                     row.extend([''] * args.num_tasks * args.multiclass_num_classes)
                 else:
-                    row.extend([''] * args.num_tasks)
+                    row.extend([''] * 2 * args.num_tasks)
 
             writer.writerow(row)
 
